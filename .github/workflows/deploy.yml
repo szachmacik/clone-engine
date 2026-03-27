@@ -1,0 +1,15 @@
+name: Deploy to Coolify
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify Deploy
+        run: |
+          curl -sf -X POST \
+            "https://coolify.ofshore.dev/api/v1/deploy?uuid=${{ vars.COOLIFY_UUID }}&force=false" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
+            && echo "✅ clone-engine deployed" || echo "⚠️ Add COOLIFY_UUID var and COOLIFY_TOKEN secret"
