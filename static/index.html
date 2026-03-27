@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clone Engine — ofshore.dev</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+:root{--bg:#07070e;--s1:#0d0d1c;--s2:#141428;--border:#1e1e3a;--a:#7c3aed;--a2:#5b21b6;--a3:#c4b5fd;--b:#3b82f6;--g:#10b981;--y:#f59e0b;--r:#ef4444;--text:#f0eeff;--sub:#94a3b8;--muted:#475569}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 20px}
+
+.header{text-align:center;margin-bottom:40px}
+.logo{font-size:11px;font-family:'Space Mono',monospace;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+h1{font-size:36px;font-weight:700;letter-spacing:-1px;background:linear-gradient(135deg,var(--a3),var(--b));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.subtitle{font-size:14px;color:var(--sub)}
+
+.input-card{width:100%;max-width:720px;background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:24px}
+
+.url-row{display:flex;gap:10px;margin-bottom:16px}
+.url-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.url-input:focus{border-color:var(--a)}
+.url-input::placeholder{color:var(--muted)}
+.clone-btn{background:var(--a);color:white;border:none;border-radius:10px;padding:12px 24px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s}
+.clone-btn:hover{background:var(--a2)}
+.clone-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.options-row{display:flex;gap:10px;flex-wrap:wrap}
+.opt-input{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--sub);font-size:12px;font-family:'Space Mono',monospace;width:200px;outline:none}
+.opt-input::placeholder{color:var(--muted)}
+.opt-select{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--sub);font-size:12px;font-family:'Space Mono',monospace;cursor:pointer}
+
+/* Progress */
+.progress-card{width:100%;max-width:720px;background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:24px;display:none}
+.progress-title{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.phase-list{display:flex;flex-direction:column;gap:8px}
+.phase-row{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:8px;font-size:13px;transition:all .2s}
+.phase-row.pending{color:var(--muted)}
+.phase-row.active{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:var(--a3)}
+.phase-row.done{color:var(--g)}
+.phase-icon{width:20px;text-align:center;font-size:16px}
+.phase-status{margin-left:auto;font-family:'Space Mono',monospace;font-size:10px}
+
+/* Analysis result */
+.analysis-card{width:100%;max-width:720px;background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:24px;display:none}
+.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.a-item{background:var(--s2);border-radius:8px;padding:12px}
+.a-label{font-size:9px;font-family:'Space Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.a-value{font-size:13px;font-weight:600}
+
+/* Features */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
+.feat-pill{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);border-radius:6px;padding:4px 8px;font-size:11px;color:var(--a3);font-family:'Space Mono',monospace}
+
+/* Files */
+.files-card{width:100%;max-width:720px;background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:24px;display:none}
+.files-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.file-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all .15s}
+.file-card:hover{border-color:var(--a);transform:translateY(-2px)}
+.file-layer{font-size:9px;font-family:'Space Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.file-name{font-size:12px;font-weight:600;margin:4px 0}
+.file-meta{font-size:10px;color:var(--sub)}
+.file-icon{font-size:20px;margin-bottom:6px}
+
+/* Patterns */
+.patterns-card{width:100%;max-width:720px;margin-bottom:24px}
+.patterns-title{font-size:11px;font-family:'Space Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.patterns-row{display:flex;gap:8px;flex-wrap:wrap}
+.pattern-chip{background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--sub);cursor:pointer;transition:all .15s}
+.pattern-chip:hover{border-color:var(--a);color:var(--a3)}
+
+/* Done banner */
+.done-banner{width:100%;max-width:720px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:16px;padding:24px;text-align:center;display:none}
+.done-banner h2{font-size:24px;color:var(--g);margin-bottom:8px}
+.done-banner p{font-size:13px;color:var(--sub);margin-bottom:16px}
+.deploy-btn{background:var(--g);color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif}
+
+/* Spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .8s linear infinite;display:inline-block}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">ofshore.dev</div>
+  <h1>Clone Engine</h1>
+  <p class="subtitle">URL → pełny działający produkt w 6 warstwach · uczy się z każdego klona</p>
+</div>
+
+<!-- Input -->
+<div class="input-card">
+  <div class="url-row">
+    <input class="url-input" id="url-input" placeholder="https://genspark.ai — wklej URL produktu do sklonowania"
+      onkeydown="if(event.key==='Enter')startClone()">
+    <button class="clone-btn" id="clone-btn" onclick="startClone()">⚡ Klonuj</button>
+  </div>
+  <div class="options-row">
+    <input class="opt-input" id="name-input" placeholder="Nazwa klona (opcjonalnie)">
+    <input class="opt-input" id="domain-input" placeholder="domena.ofshore.dev">
+    <select class="opt-select" id="depth-select">
+      <option value="full">Full clone (7 warstw)</option>
+      <option value="quick">Quick (SQL + API + UI)</option>
+      <option value="ui_only">UI only</option>
+    </select>
+  </div>
+</div>
+
+<!-- Patterns (learned) -->
+<div class="patterns-card" id="patterns-card" style="display:none">
+  <div class="patterns-title">🧠 Poprzednio sklonowane (kliknij aby załadować)</div>
+  <div class="patterns-row" id="patterns-row"></div>
+</div>
+
+<!-- Progress -->
+<div class="progress-card" id="progress-card">
+  <div class="progress-title">
+    <span class="spin">⚡</span>
+    <span id="progress-title">Klonuję...</span>
+  </div>
+  <div class="phase-list" id="phase-list"></div>
+</div>
+
+<!-- Analysis -->
+<div class="analysis-card" id="analysis-card">
+  <div style="font-size:14px;font-weight:600;margin-bottom:4px">📊 Analiza produktu</div>
+  <div style="font-size:12px;color:var(--sub)" id="analysis-desc"></div>
+  <div class="analysis-grid" id="analysis-grid"></div>
+  <div id="features-section"></div>
+</div>
+
+<!-- Files -->
+<div class="files-card" id="files-card">
+  <div style="font-size:14px;font-weight:600">📦 Wygenerowane pliki</div>
+  <div class="files-grid" id="files-grid"></div>
+</div>
+
+<!-- Done -->
+<div class="done-banner" id="done-banner">
+  <h2>✅ Klon gotowy!</h2>
+  <p id="done-desc"></p>
+  <button class="deploy-btn" onclick="deployNow()">🚀 Deploy do Coolify</button>
+</div>
+
+<script>
+const API = location.hostname === 'localhost' ? 'http://localhost:9000' : '';
+
+const PHASES = [
+  {icon:'🔍', name:'Analiza produktu'},
+  {icon:'🗄️', name:'SQL Schema'},
+  {icon:'⚙️', name:'FastAPI Backend'},
+  {icon:'⚡', name:'n8n Workflows'},
+  {icon:'🎨', name:'UI (HTML/CSS/JS)'},
+  {icon:'☁️', name:'Cloudflare Worker'},
+  {icon:'🚀', name:'Deploy Config'},
+];
+
+let currentClone = null;
+
+// ── Init ──────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const r = await fetch(`${API}/patterns`);
+    const patterns = await r.json();
+    if (patterns?.length) {
+      const card = document.getElementById('patterns-card');
+      const row = document.getElementById('patterns-row');
+      card.style.display = 'block';
+      row.innerHTML = patterns.slice(0,8).map(p =>
+        `<div class="pattern-chip" onclick="loadPattern('${p.product_url}','${p.product_name}')">
+          ${p.product_name || p.product_url} · ${p.category}
+        </div>`
+      ).join('');
+    }
+  } catch {}
+}
+
+function loadPattern(url, name) {
+  document.getElementById('url-input').value = url;
+  document.getElementById('name-input').value = name;
+}
+
+// ── Clone ──────────────────────────────────────────────────────────
+async function startClone() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) { document.getElementById('url-input').focus(); return; }
+
+  const name = document.getElementById('name-input').value.trim();
+  const domain = document.getElementById('domain-input').value.trim();
+  const depth = document.getElementById('depth-select').value;
+
+  setLoading(true);
+  resetUI();
+  showPhases();
+
+  const files = {};
+  let analysis = null;
+  let cloneId = null;
+  let doneData = null;
+
+  try {
+    const r = await fetch(`${API}/clone/stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, clone_name: name, custom_domain: domain, depth })
+    });
+
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      for (const line of dec.decode(value).split('\n').filter(l => l.startsWith('data: '))) {
+        const raw = line.slice(6);
+        if (raw === '[DONE]') break;
+        try {
+          const ev = JSON.parse(raw);
+          handleEvent(ev, files);
+          if (ev.type === 'analysis') analysis = ev;
+          if (ev.type === 'start') cloneId = ev.clone_id;
+          if (ev.type === 'done') doneData = ev;
+        } catch {}
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    // Fallback sync
+    const r = await fetch(`${API}/clone`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, clone_name: name, custom_domain: domain })
+    });
+    const d = await r.json();
+    showFiles({ files: Object.keys(d), name: name || 'Clone' });
+  }
+
+  setLoading(false);
+}
+
+function handleEvent(ev, files) {
+  if (ev.type === 'start') {
+    document.getElementById('progress-title').textContent = `Klonuję: ${ev.name}`;
+
+  } else if (ev.type === 'phase') {
+    updatePhase(ev.phase - 1, 'active');
+    if (ev.phase > 1) updatePhase(ev.phase - 2, 'done');
+
+  } else if (ev.type === 'analysis') {
+    showAnalysis(ev);
+
+  } else if (ev.type === 'file_ready') {
+    addFile(ev);
+
+  } else if (ev.type === 'done') {
+    for (let i = 0; i < 7; i++) updatePhase(i, 'done');
+    document.querySelector('.spin').textContent = '✅';
+    document.getElementById('progress-title').textContent = 'Klon gotowy!';
+    showDone(ev);
+    init(); // Refresh patterns
+  }
+}
+
+// ── UI Helpers ────────────────────────────────────────────────────
+function showPhases() {
+  const list = document.getElementById('phase-list');
+  list.innerHTML = PHASES.map((p, i) =>
+    `<div class="phase-row pending" id="phase-${i}">
+      <span class="phase-icon">${p.icon}</span>
+      <span>${p.name}</span>
+      <span class="phase-status" id="phase-status-${i}">aguarda</span>
+    </div>`
+  ).join('');
+  document.getElementById('progress-card').style.display = 'block';
+}
+
+function updatePhase(idx, status) {
+  const el = document.getElementById(`phase-${idx}`);
+  const st = document.getElementById(`phase-status-${idx}`);
+  if (!el) return;
+  el.className = `phase-row ${status}`;
+  st.textContent = status === 'active' ? '⟳ in progress' : status === 'done' ? '✓ done' : '';
+}
+
+function showAnalysis(ev) {
+  const card = document.getElementById('analysis-card');
+  card.style.display = 'block';
+
+  document.getElementById('analysis-desc').textContent = '';
+
+  document.getElementById('analysis-grid').innerHTML = `
+    <div class="a-item"><div class="a-label">Kategoria</div><div class="a-value">${ev.category || '—'}</div></div>
+    <div class="a-item"><div class="a-label">Features</div><div class="a-value">${ev.features_count || 0}</div></div>
+    <div class="a-item" style="grid-column:span 2"><div class="a-label">Tech Stack</div><div class="a-value">${(ev.tech_stack || []).join(' · ')}</div></div>
+  `;
+
+  if (ev.modules?.length) {
+    document.getElementById('features-section').innerHTML = `
+      <div style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:12px;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Moduły do sklonowania</div>
+      <div class="features-grid">${ev.modules.map(m => `<div class="feat-pill">${m}</div>`).join('')}</div>
+    `;
+  }
+}
+
+function addFile(ev) {
+  const card = document.getElementById('files-card');
+  card.style.display = 'block';
+
+  const icons = {sql:'🗄️', api:'⚙️', n8n:'⚡', ui:'🎨', worker:'☁️', deploy:'🚀'};
+  const names = {sql:'SQL Schema', api:'FastAPI', n8n:'n8n Workflow', ui:'UI HTML', worker:'CF Worker', deploy:'Deploy Guide'};
+
+  const grid = document.getElementById('files-grid');
+  const div = document.createElement('div');
+  div.className = 'file-card';
+  div.innerHTML = `
+    <div class="file-icon">${icons[ev.layer] || '📄'}</div>
+    <div class="file-layer">${ev.layer}</div>
+    <div class="file-name">${names[ev.layer] || ev.layer}</div>
+    <div class="file-meta">${ev.lines ? ev.lines + ' linii' : ev.endpoints ? ev.endpoints + ' endpoints' : '✓'}</div>
+  `;
+  grid.appendChild(div);
+}
+
+function showDone(ev) {
+  const banner = document.getElementById('done-banner');
+  banner.style.display = 'block';
+  document.getElementById('done-desc').textContent =
+    `${ev.name} — ${ev.features} features — deploy target: ${ev.deploy_target}`;
+  currentClone = ev;
+}
+
+function showFiles(data) {
+  addFile({ layer: 'deploy' });
+  showDone({ name: data.name, features: '?', deploy_target: '—' });
+}
+
+function resetUI() {
+  document.getElementById('analysis-card').style.display = 'none';
+  document.getElementById('files-card').style.display = 'none';
+  document.getElementById('done-banner').style.display = 'none';
+  document.getElementById('files-grid').innerHTML = '';
+  document.getElementById('progress-card').style.display = 'none';
+}
+
+function setLoading(v) {
+  document.getElementById('clone-btn').disabled = v;
+  document.getElementById('clone-btn').textContent = v ? '⟳ Klonuję...' : '⚡ Klonuj';
+}
+
+async function deployNow() {
+  if (!currentClone) return;
+  alert(`Deploy do Coolify: ${currentClone.deploy_target}\n\nManus wykona deployment autonomicznie.`);
+}
+
+init();
+</script>
+</body>
+</html>
