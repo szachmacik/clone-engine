@@ -1,3 +1,4 @@
+# HOLON-META: {"morphic_field":"agent-state:4c67a2b1-6830-44ec-97b1-7c8f93722add"}
 """
 Clone Engine — ofshore.dev
 URL → pełna analiza → 6 warstw kodu
